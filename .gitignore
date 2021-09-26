@@ -1,0 +1,9 @@
+/bin/
+.gradle
+.settings
+.project
+.classpath
+gradle.properties
+build
+*.rdb
+*.aof

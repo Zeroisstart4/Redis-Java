@@ -1,0 +1,147 @@
+plugins {
+  id 'java-library'
+  id 'jacoco'
+  id 'maven-publish'
+  id 'signing'
+  id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+}
+
+allprojects {
+  apply plugin: 'java-library'
+  apply plugin: 'jacoco'
+  apply plugin: 'maven-publish'
+  apply plugin: 'signing'
+
+  group = 'com.github.tonivade'
+  version = '2.0-SNAPSHOT'
+  
+  ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+  jacoco {
+    toolVersion = '0.8.6'
+  }
+
+  sourceCompatibility = '1.8'
+  targetCompatibility = '1.8'
+
+  repositories {
+    mavenLocal() 
+    mavenCentral()
+    maven {
+      url = 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+  }
+
+  test {
+    useJUnitPlatform()
+
+    jacoco {
+      destinationFile = file("${buildDir}/jacoco/test.exec")
+    }
+  }
+
+  jacocoTestReport {
+    reports {
+      xml.required = true
+      html.required = true
+      xml.destination file("${buildDir}/reports/jacoco/report.xml")
+    }
+  } 
+}
+
+subprojects {
+  publishing {
+    publications {
+      mavenJava(MavenPublication) {
+      
+        if (project.name == 'claudb-lib') {
+          artifactId = 'claudb'
+        }
+        
+        from components.java
+        
+        pom {
+          name = 'ClauDB'
+          description = 'ClauDB is a REDIS implementation in Java'
+          url = 'https://github.com/tonivade/claudb'
+          inceptionYear = '2015'
+
+          scm {
+            url = 'https://github.com/tonivade/claudb'
+            connection = 'scm:https://github.com/tonivade/claudb.git'
+            developerConnection = 'scm:git://github.com/tonivade/claudb.git'
+          }
+
+          licenses {
+            license {
+              name = 'The MIT License (MIT)'
+              url = 'https://github.com/tonivade/claudb/blob/master/LICENSE'
+              distribution = 'repo'
+            }
+          }
+
+          developers {
+            developer {
+              id = 'tonivade'
+              name = 'Antonio Muñoz'
+              email = 'antoniogmc@gmail.com'
+            }
+          }
+        }
+      }
+    }
+  }
+
+  signing {
+    sign publishing.publications.mavenJava
+  }
+  
+  tasks.withType(Sign) {
+    onlyIf { isReleaseVersion }
+  }
+}
+
+nexusPublishing {
+  repositories {
+    sonatype {
+      
+      stagingProfileId = '19a96b937cdb5'
+      
+      username = project.findProperty('nexusUsername')  
+      password = project.findProperty('nexusPassword')
+    }
+  }
+  
+  clientTimeout = Duration.ofSeconds(300)
+  connectTimeout = Duration.ofSeconds(60)
+
+  transitionCheckOptions {
+    maxRetries.set(40)
+    delayBetween.set(java.time.Duration.ofMillis(3000))
+  }
+}
+
+def publishedProjects = subprojects.findAll()
+
+task jacocoFullReport(type: JacocoReport, group: 'Coverage reports', dependsOn: jacocoTestReport) {
+  description = 'Generates an aggregate report from all subprojects'
+
+  dependsOn(publishedProjects.test)
+
+  additionalSourceDirs.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
+  sourceDirectories.from = files(publishedProjects.sourceSets.main.allSource.srcDirs)
+  classDirectories.from = files(publishedProjects.sourceSets.main.output)
+  executionData.from = files(publishedProjects.jacocoTestReport.executionData).findAll { it.exists() }
+
+  reports {
+    html.required = true
+    xml.required = true
+    xml.destination file("${buildDir}/reports/jacoco/report.xml")
+  }
+}
+
+task fullTestReport(type: TestReport, group: 'Html Report with all the tests', dependsOn: check) {
+  destinationDir = file("$buildDir/reports/allTests")
+
+  reportOn subprojects*.test
+}
