@@ -22,6 +22,11 @@ import java.util.TreeSet;
 
 import com.github.tonivade.resp.protocol.SafeString;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * SortSet 实现类
+ */
 public class SortedSet implements NavigableSet<Entry<Double, SafeString>>, Serializable {
 
   private static final long serialVersionUID = -2221385877842299451L;

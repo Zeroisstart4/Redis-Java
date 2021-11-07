@@ -4,60 +4,78 @@
  */
 package com.github.tonivade.claudb.event;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Objects;
-
 import com.github.tonivade.purefun.Equal;
 import com.github.tonivade.resp.protocol.SafeString;
 
+import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis 事件类
+ */
 public abstract class Event {
 
-  private static final Equal<Event> EQUAL = Equal.<Event>of()
-      .comparing(e -> e.command)
-      .comparing(e -> e.key)
-      .comparing(e -> e.schema);
+    /**
+     * 比较器
+     */
+    private static final Equal<Event> EQUAL = Equal.<Event>of()
+            .comparing(e -> e.command)
+            .comparing(e -> e.key)
+            .comparing(e -> e.schema);
 
-  private SafeString command;
-  private SafeString key;
-  private int schema;
+    /**
+     * 命令
+     */
+    private SafeString command;
+    /**
+     * redis 键
+     */
+    private SafeString key;
+    /**
+     * redis 约束
+     */
+    private int schema;
 
-  public Event(SafeString command, SafeString key, int schema) {
-    this.command = requireNonNull(command);
-    this.key = requireNonNull(key);
-    this.schema = schema;
-  }
+    public Event(SafeString command, SafeString key, int schema) {
+        this.command = requireNonNull(command);
+        this.key = requireNonNull(key);
+        this.schema = schema;
+    }
 
-  public SafeString getCommand() {
-    return command;
-  }
+    public SafeString getCommand() {
+        return command;
+    }
 
-  public SafeString getKey() {
-    return key;
-  }
+    public SafeString getKey() {
+        return key;
+    }
 
-  public int getSchema() {
-    return schema;
-  }
+    public int getSchema() {
+        return schema;
+    }
 
-  public abstract String getChannel();
-  public abstract SafeString getValue();
+    public abstract String getChannel();
 
-  @Override
-  public boolean equals(Object obj) {
-    return EQUAL.applyTo(this, obj);
-  }
+    public abstract SafeString getValue();
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(command, key, schema);
-  }
+    @Override
+    public boolean equals(Object obj) {
+        return EQUAL.applyTo(this, obj);
+    }
 
-  public static KeyEvent keyEvent(SafeString command, SafeString key, int schema) {
-    return new KeyEvent(command, key, schema);
-  }
+    @Override
+    public int hashCode() {
+        return Objects.hash(command, key, schema);
+    }
 
-  public static KeySpace commandEvent(SafeString command, SafeString key, int schema) {
-    return new KeySpace(command, key, schema);
-  }
+    public static KeyEvent keyEvent(SafeString command, SafeString key, int schema) {
+        return new KeyEvent(command, key, schema);
+    }
+
+    public static KeySpace commandEvent(SafeString command, SafeString key, int schema) {
+        return new KeySpace(command, key, schema);
+    }
 }

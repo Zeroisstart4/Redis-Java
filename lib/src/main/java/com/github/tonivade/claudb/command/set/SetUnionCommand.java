@@ -16,18 +16,29 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis Set 类型的 sunion 命令实现。
+ */
 @ReadOnly
 @Command("sunion")
 @ParamLength(2)
 @ParamType(DataType.SET)
 public class SetUnionCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableSet<SafeString> result = db.getSet(request.getParam(0));
-    for (SafeString param : request.getParams().asList().tail()) {
-      result = result.union(db.getSet(param));
+    /**
+     * 命令形式： sunion key [key ...] 返回给定的多个集合的并集中的所有成员.
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        ImmutableSet<SafeString> result = db.getSet(request.getParam(0));
+        for (SafeString param : request.getParams().asList().tail()) {
+            result = result.union(db.getSet(param));
+        }
+        return convert(result);
     }
-    return convert(result);
-  }
 }

@@ -190,13 +190,13 @@ Performance is quite good, not as good as REDIS, but it's good enough for Java.
 
 This is ClauDB
 
-    $ redis-benchmark -t set,get -h localhost -p 7081 -n 100000 -q
+    $ redis-benchmark -t set,get -h 127.0.0.1 -p 7081 -n 100000 -q
     SET: 47664.44 requests per second
     GET: 50226.02 requests per second
     
 And this is REDIS
 
-    $ redis-benchmark -t set,get -h localhost -p 6379 -n 100000 -q
+    $ redis-benchmark -t set,get -h 127.0.0.1 -p 6379 -n 100000 -q
     SET: 97656.24 requests per second
     GET: 98716.68 requests per second
     

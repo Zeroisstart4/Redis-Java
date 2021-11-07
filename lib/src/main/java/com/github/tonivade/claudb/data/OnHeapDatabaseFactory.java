@@ -6,15 +6,28 @@ package com.github.tonivade.claudb.data;
 
 import java.util.HashMap;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * 堆上数据库工厂
+ */
 public class OnHeapDatabaseFactory implements DatabaseFactory {
 
-  @Override
-  public Database create(String name) {
-    return new OnHeapDatabase(new HashMap<>());
-  }
+    /**
+     * 创建数据库
+     * @param name  数据库名
+     * @return
+     */
+    @Override
+    public Database create(String name) {
+        return new OnHeapDatabase(new HashMap<>());
+    }
 
-  @Override
-  public void clear() {
-    // nothing to clear
-  }
+    /**
+     * 清理数据库
+     */
+    @Override
+    public void clear() {
+        // nothing to clear
+    }
 }

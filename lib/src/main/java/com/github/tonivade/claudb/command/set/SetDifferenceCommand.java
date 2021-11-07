@@ -16,18 +16,29 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis Set 类型的 sdiff 命令实现。
+ */
 @ReadOnly
 @Command("sdiff")
 @ParamLength(2)
 @ParamType(DataType.SET)
 public class SetDifferenceCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableSet<SafeString> result = db.getSet(request.getParam(0));
-    for (SafeString param : request.getParams().asList().tail()) {
-      result = result.difference(db.getSet(param));
+    /**
+     * 命令形式： sdiff key [key ...] 返回一个集合与给定集合的差集的元素
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        ImmutableSet<SafeString> result = db.getSet(request.getParam(0));
+        for (SafeString param : request.getParams().asList().tail()) {
+            result = result.difference(db.getSet(param));
+        }
+        return convert(result);
     }
-    return convert(result);
-  }
 }

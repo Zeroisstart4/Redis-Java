@@ -18,6 +18,11 @@ import com.github.tonivade.purefun.data.ImmutableSet;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+/**
+ * @author zhou <br/>
+ *
+ * 订阅支持接口
+ */
 public interface SubscriptionSupport extends BaseSubscriptionSupport {
 
   String SUBSCRIPTION_PREFIX = "subscription:";

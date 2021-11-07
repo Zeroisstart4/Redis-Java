@@ -4,72 +4,95 @@
  */
 package com.github.tonivade.claudb;
 
+import com.github.tonivade.resp.RespServer;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Stream;
 
-import com.github.tonivade.resp.RespServer;
-
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
-
+/**
+ * @author zhou
+ * <p>
+ * Redis 服务端
+ */
 public class Server {
 
-  public static void main(String[] args) throws IOException {
-    OptionParser parser = new OptionParser();
-    OptionSpec<Void> help = parser.accepts("help", "print help");
-    OptionSpec<Void> verbose = parser.accepts("V", "verbose");
-    OptionSpec<Void> persist = parser.accepts("P", "persistence (experimental)");
-    OptionSpec<Void> offHeap = parser.accepts("O", "off heap memory (experimental)");
-    OptionSpec<Void> notifications = parser.accepts("N", "keyspace notifications (experimental)");
-    OptionSpec<String> host = parser.accepts("h", "host")
-        .withRequiredArg().defaultsTo(DBServerContext.DEFAULT_HOST);
-    OptionSpec<String> port = parser.accepts("p", "port").withRequiredArg();
+    public static void main(String[] args) throws IOException {
+        OptionParser parser = new OptionParser();
+        OptionSpec<Void> help = parser.accepts("help", "print help");
+        OptionSpec<Void> verbose = parser.accepts("V", "verbose");
+        OptionSpec<Void> persist = parser.accepts("P", "persistence (experimental)");
+        OptionSpec<Void> offHeap = parser.accepts("O", "off heap memory (experimental)");
+        OptionSpec<Void> notifications = parser.accepts("N", "keyspace notifications (experimental)");
+        OptionSpec<String> host = parser.accepts("h", "host")
+                .withRequiredArg().defaultsTo(DBServerContext.DEFAULT_HOST);
+        OptionSpec<String> port = parser.accepts("p", "port").withRequiredArg();
 
-    OptionSet options = parser.parse(args);
+        OptionSet options = parser.parse(args);
 
-    if (options.has(help)) {
-      parser.printHelpOn(System.out);
-    } else {
-      String optionHost = options.valueOf(host);
-      int optionPort = parsePort(options.valueOf(port));
-      DBConfig config = parseConfig(options.has(persist),
-                                    options.has(offHeap),
-                                    options.has(notifications));
+        if (options.has(help)) {
+            parser.printHelpOn(System.out);
+        } else {
+            String optionHost = options.valueOf(host);
+            int optionPort = parsePort(options.valueOf(port));
+            DBConfig config = parseConfig(options.has(persist),
+                    options.has(offHeap),
+                    options.has(notifications));
 
-      readBanner().forEach(System.out::println);
+            readBanner().forEach(System.out::println);
 
-      System.setProperty("root-level", options.has(verbose) ? "DEBUG": "INFO");
+            System.setProperty("root-level", options.has(verbose) ? "DEBUG" : "INFO");
 
-      RespServer server = ClauDB.builder().host(optionHost).port(optionPort).config(config).build();
-      Runtime.getRuntime().addShutdownHook(new Thread(server::stop));
-      server.start();
+            RespServer server = ClauDB.builder().host(optionHost).port(optionPort).config(config).build();
+            Runtime.getRuntime().addShutdownHook(new Thread(server::stop));
+            server.start();
+        }
     }
-  }
 
-  private static Stream<String> readBanner() {
-    InputStream banner = Server.class.getResourceAsStream("/banner.txt");
-    return new BufferedReader(new InputStreamReader(banner)).lines();
-  }
+    /**
+     * 读取标语
+     *
+     * @return
+     */
+    private static Stream<String> readBanner() {
+        InputStream banner = Server.class.getResourceAsStream("/banner.txt");
+        return new BufferedReader(new InputStreamReader(banner)).lines();
+    }
 
-  private static int parsePort(String optionPort) {
-    return optionPort != null ? Integer.parseInt(optionPort) : DBServerContext.DEFAULT_PORT;
-  }
+    /**
+     * 解析端口号
+     *
+     * @param optionPort
+     * @return
+     */
+    private static int parsePort(String optionPort) {
+        return optionPort != null ? Integer.parseInt(optionPort) : DBServerContext.DEFAULT_PORT;
+    }
 
-  private static DBConfig parseConfig(boolean persist, boolean offHeap, boolean notifications) {
-    DBConfig.Builder builder = DBConfig.builder();
-    if (persist) {
-      builder.withPersistence();
+    /**
+     * 解析配置
+     *
+     * @param persist       是否进行持久化
+     * @param offHeap       是否使用堆
+     * @param notifications 是否通知
+     * @return
+     */
+    private static DBConfig parseConfig(boolean persist, boolean offHeap, boolean notifications) {
+        DBConfig.Builder builder = DBConfig.builder();
+        if (persist) {
+            builder.withPersistence();
+        }
+        if (offHeap) {
+            builder.withOffHeapCache();
+        }
+        if (notifications) {
+            builder.withNotifications();
+        }
+        return builder.build();
     }
-    if (offHeap) {
-      builder.withOffHeapCache();
-    }
-    if (notifications) {
-      builder.withNotifications();
-    }
-    return builder.build();
-  }
 }

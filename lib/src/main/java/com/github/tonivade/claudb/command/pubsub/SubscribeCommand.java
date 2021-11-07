@@ -4,11 +4,6 @@
  */
 package com.github.tonivade.claudb.command.pubsub;
 
-import static java.util.Arrays.asList;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import com.github.tonivade.claudb.command.DBCommand;
 import com.github.tonivade.claudb.command.annotation.PubSubAllowed;
 import com.github.tonivade.claudb.command.annotation.ReadOnly;
@@ -20,34 +15,50 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis Pub/Sub 类型的 subscribe 命令实现。
+ */
 @ReadOnly
 @Command("subscribe")
 @ParamLength(1)
 @PubSubAllowed
 public class SubscribeCommand implements DBCommand, SubscriptionSupport {
 
-  private static final String SUBSCRIBE = "subscribe";
+    private static final String SUBSCRIBE = "subscribe";
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    Database admin = getAdminDatabase(request.getServerContext());
-    String sessionId = getSessionId(request);
-    Sequence<SafeString> channels = getChannels(request);
-    int i = channels.size();
-    List<Object> result = new LinkedList<>();
-    for (SafeString channel : request.getParams()) {
-      addSubscription(admin, sessionId, channel);
-      getSessionState(request.getSession()).addSubscription(channel);
-      result.addAll(asList(SUBSCRIBE, channel, ++i));
+    /**
+     * 命令形式： subscribe channel [channel ...] 订阅指定频道的信息。
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        Database admin = getAdminDatabase(request.getServerContext());
+        String sessionId = getSessionId(request);
+        Sequence<SafeString> channels = getChannels(request);
+        int i = channels.size();
+        List<Object> result = new LinkedList<>();
+        for (SafeString channel : request.getParams()) {
+            addSubscription(admin, sessionId, channel);
+            getSessionState(request.getSession()).addSubscription(channel);
+            result.addAll(asList(SUBSCRIBE, channel, ++i));
+        }
+        return convert(result);
     }
-    return convert(result);
-  }
 
-  private String getSessionId(Request request) {
-    return request.getSession().getId();
-  }
+    private String getSessionId(Request request) {
+        return request.getSession().getId();
+    }
 
-  private Sequence<SafeString> getChannels(Request request) {
-    return getSessionState(request.getSession()).getSubscriptions();
-  }
+    private Sequence<SafeString> getChannels(Request request) {
+        return getSessionState(request.getSession()).getSubscriptions();
+    }
 }

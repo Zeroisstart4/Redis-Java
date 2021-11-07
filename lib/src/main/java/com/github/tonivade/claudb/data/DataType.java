@@ -6,21 +6,26 @@ package com.github.tonivade.claudb.data;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * 数据类型
+ */
 public enum DataType {
-  STRING("string"),
-  LIST("list"),
-  SET("set"),
-  ZSET("zset"),
-  HASH("hash"),
-  NONE("none");
+    STRING("string"),
+    LIST("list"),
+    SET("set"),
+    ZSET("zset"),
+    HASH("hash"),
+    NONE("none");
 
-  private final String text;
+    private final String text;
 
-  DataType(String text) {
-    this.text = requireNonNull(text);
-  }
+    DataType(String text) {
+        this.text = requireNonNull(text);
+    }
 
-  public String text() {
-    return text;
-  }
+    public String text() {
+        return text;
+    }
 }

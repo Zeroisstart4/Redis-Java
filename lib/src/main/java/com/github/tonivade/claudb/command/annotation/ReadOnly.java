@@ -4,13 +4,14 @@
  */
 package com.github.tonivade.claudb.command.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
-// 只读类型
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * 只读类型
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented

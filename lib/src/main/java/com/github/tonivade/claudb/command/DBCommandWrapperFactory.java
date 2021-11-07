@@ -7,10 +7,14 @@ package com.github.tonivade.claudb.command;
 import com.github.tonivade.resp.command.CommandWrapperFactory;
 import com.github.tonivade.resp.command.RespCommand;
 
-// 数据库命令包装器工厂类
+/**
+ * @author zhou <br/>
+ * <p>
+ * 数据库命令包装器工厂类
+ */
 public class DBCommandWrapperFactory implements CommandWrapperFactory {
-  @Override
-  public RespCommand wrap(Object command) {
-    return new DBCommandWrapper(command);
-  }
+    @Override
+    public RespCommand wrap(Object command) {
+        return new DBCommandWrapper(command);
+    }
 }

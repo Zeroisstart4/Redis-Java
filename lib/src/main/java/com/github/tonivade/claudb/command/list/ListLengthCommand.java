@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.claudb.command.list;
 
-import static com.github.tonivade.resp.protocol.RedisToken.integer;
-
 import com.github.tonivade.claudb.command.DBCommand;
 import com.github.tonivade.claudb.command.annotation.ParamType;
 import com.github.tonivade.claudb.command.annotation.ReadOnly;
@@ -18,15 +16,28 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+import static com.github.tonivade.resp.protocol.RedisToken.integer;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis List 类型的 llen 命令实现。
+ */
 @ReadOnly
 @Command("llen")
 @ParamLength(1)
 @ParamType(DataType.LIST)
 public class ListLengthCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableList<SafeString> list = db.getList(request.getParam(0));
-    return integer(list.size());
-  }
+    /**
+     * 命令形式： llen key 返回存储在 key 里的 list 的长度
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        ImmutableList<SafeString> list = db.getList(request.getParam(0));
+        return integer(list.size());
+    }
 }

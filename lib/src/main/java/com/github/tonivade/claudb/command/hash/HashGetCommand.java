@@ -16,24 +16,32 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
-// redis Hash 类型的 hget 命令实现。
+/**
+ * @author <br/>
+ * <p>
+ * redis Hash 类型的 hget 命令实现。
+ */
 @ReadOnly
 @Command("hget")
 @ParamLength(2)
 @ParamType(DataType.HASH)
 public class HashGetCommand implements DBCommand {
 
-  /**
-   * 命令形式： hget key field 获取数据
-   * @param db        当前数据库
-   * @param request   命令请求
-   * @return
-   */
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableMap<SafeString, SafeString> map = db.getHash(request.getParam(0));
-    return map.get(request.getParam(1))
-        .map(RedisToken::string)
-        .getOrElse(RedisToken::nullString);
-  }
+    /**
+     * 命令形式： hget key field 获取数据
+     *
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+
+        // 获取 hash 表
+        ImmutableMap<SafeString, SafeString> map = db.getHash(request.getParam(0));
+        // 流式编程，返回满足条件的元素集合
+        return map.get(request.getParam(1))
+                .map(RedisToken::string)
+                .getOrElse(RedisToken::nullString);
+    }
 }

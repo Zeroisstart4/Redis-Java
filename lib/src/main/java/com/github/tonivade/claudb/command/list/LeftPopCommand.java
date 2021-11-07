@@ -4,14 +4,6 @@
  */
 package com.github.tonivade.claudb.command.list;
 
-import static com.github.tonivade.claudb.data.DatabaseKey.safeKey;
-import static com.github.tonivade.claudb.data.DatabaseValue.list;
-import static com.github.tonivade.resp.protocol.RedisToken.nullString;
-import static com.github.tonivade.resp.protocol.RedisToken.string;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import com.github.tonivade.claudb.command.DBCommand;
 import com.github.tonivade.claudb.command.annotation.ParamType;
 import com.github.tonivade.claudb.data.DataType;
@@ -24,25 +16,44 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.github.tonivade.claudb.data.DatabaseKey.safeKey;
+import static com.github.tonivade.claudb.data.DatabaseValue.list;
+import static com.github.tonivade.resp.protocol.RedisToken.nullString;
+import static com.github.tonivade.resp.protocol.RedisToken.string;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis List 类型的 lpop 命令实现。
+ */
 @Command("lpop")
 @ParamLength(1)
 @ParamType(DataType.LIST)
 public class LeftPopCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    List<SafeString> removed = new LinkedList<>();
-    db.merge(safeKey(request.getParam(0)), DatabaseValue.EMPTY_LIST,
-        (oldValue, newValue) -> {
-          ImmutableList<SafeString> list = oldValue.getList();
-          list.head().stream().forEach(removed::add);
-          return list(list.tail());
-        });
+    /**
+     * 命令形式： lpop key 移除并且返回 key 对应的 list 的第一个元素。
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        List<SafeString> removed = new LinkedList<>();
+        db.merge(safeKey(request.getParam(0)), DatabaseValue.EMPTY_LIST,
+                (oldValue, newValue) -> {
+                    ImmutableList<SafeString> list = oldValue.getList();
+                    list.head().stream().forEach(removed::add);
+                    return list(list.tail());
+                });
 
-    if (removed.isEmpty()) {
-      return nullString();
-    } else {
-      return string(removed.remove(0));
+        if (removed.isEmpty()) {
+            return nullString();
+        } else {
+            return string(removed.remove(0));
+        }
     }
-  }
 }

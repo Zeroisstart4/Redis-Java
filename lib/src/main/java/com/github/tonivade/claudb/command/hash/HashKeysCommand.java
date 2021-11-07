@@ -16,22 +16,30 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
-// redis Hash 类型的 hkeys 命令实现。
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis Hash 类型的 hkeys 命令实现。
+ */
 @ReadOnly
 @Command("hkeys")
 @ParamLength(1)
 @ParamType(DataType.HASH)
 public class HashKeysCommand implements DBCommand {
 
-  /**
-   *  命令形式： hkeys key 获取哈希表中所有的字段名
-   * @param db        当前数据库
-   * @param request   命令请求
-   * @return
-   */
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableMap<SafeString, SafeString> map = db.getHash(request.getParam(0));
-    return convert(map.keys());
-  }
+    /**
+     * 命令形式： hkeys key 获取哈希表中所有的字段名
+     *
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+
+        // 获取 hash 表
+        ImmutableMap<SafeString, SafeString> map = db.getHash(request.getParam(0));
+        // 返回元素集合
+        return convert(map.keys());
+    }
 }

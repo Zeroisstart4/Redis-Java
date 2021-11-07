@@ -4,43 +4,66 @@
  */
 package com.github.tonivade.claudb.data;
 
+import com.github.tonivade.claudb.DBConfig;
+import com.github.tonivade.claudb.DBServerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.github.tonivade.claudb.DBConfig;
-import com.github.tonivade.claudb.DBServerContext;
-
+/**
+ * @author zhou <br/>
+ * <p>
+ * 数据库清理器
+ */
 public class DatabaseCleaner {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCleaner.class);
+    /**
+     * 日志
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCleaner.class);
+    /**
+     * 数据库服务器上下文
+     */
+    private final DBServerContext server;
+    /**
+     * 数据库配置
+     */
+    private final DBConfig config;
+    /**
+     * 单例执行器
+     */
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-  private final DBServerContext server;
-  private final DBConfig config;
+    public DatabaseCleaner(DBServerContext server, DBConfig config) {
+        this.server = server;
+        this.config = config;
+    }
 
-  private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    /**
+     * 开启数据库清理
+     */
+    public void start() {
+        executor.scheduleWithFixedDelay(this::clean,
+                config.getCleanPeriod(), config.getCleanPeriod(), TimeUnit.SECONDS);
+    }
 
-  public DatabaseCleaner(DBServerContext server, DBConfig config) {
-    this.server = server;
-    this.config = config;
-  }
+    /**
+     * 关闭数据库清理
+     */
+    public void stop() {
+        executor.shutdown();
+    }
 
-  public void start() {
-    executor.scheduleWithFixedDelay(this::clean,
-        config.getCleanPeriod(), config.getCleanPeriod(), TimeUnit.SECONDS);
-  }
-
-  public void stop() {
-    executor.shutdown();
-  }
-
-  private void clean() {
-    LOGGER.debug("cleaning database: running");
-    server.clean(Instant.now());
-    LOGGER.debug("cleaning database: done");
-  }
+    /**
+     * 数据库清理
+     */
+    private void clean() {
+        LOGGER.debug("cleaning database: running");
+        server.clean(Instant.now());
+        LOGGER.debug("cleaning database: done");
+    }
 }

@@ -5,50 +5,70 @@
 
 package com.github.tonivade.claudb.command.server;
 
-import static com.github.tonivade.resp.protocol.RedisToken.responseOk;
-
-import com.github.tonivade.resp.annotation.Command;
-import com.github.tonivade.resp.annotation.ParamLength;
-import com.github.tonivade.resp.command.Request;
-import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.claudb.command.DBCommand;
 import com.github.tonivade.claudb.command.annotation.ReadOnly;
 import com.github.tonivade.claudb.data.Database;
 import com.github.tonivade.claudb.replication.SlaveReplication;
+import com.github.tonivade.resp.annotation.Command;
+import com.github.tonivade.resp.annotation.ParamLength;
+import com.github.tonivade.resp.command.Request;
+import com.github.tonivade.resp.protocol.RedisToken;
 
+import static com.github.tonivade.resp.protocol.RedisToken.responseOk;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis 数据库相关命令的 slaveof 命令实现。
+ */
 @ReadOnly
 @Command("slaveof")
 @ParamLength(2)
 public class SlaveOfCommand implements DBCommand {
 
-  private SlaveReplication slave;
+    /**
+     * 从节点复制
+     */
+    private SlaveReplication slave;
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    String host = request.getParam(0).toString();
-    String port = request.getParam(1).toString();
+    /**
+     *  命令形式： slaveof host port 将当前服务器转变为指定服务器的从属服务器 (slave server)。
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        String host = request.getParam(0).toString();
+        String port = request.getParam(1).toString();
 
-    boolean stopCurrent = "NO".equals(host) && "ONE".equals(port);
+        boolean stopCurrent = "NO".equals(host) && "ONE".equals(port);
 
-    if (slave == null) {
-      if (!stopCurrent) {
-        startReplication(request, host, port);
-      }
-    } else {
-      slave.stop();
+        if (slave == null) {
+            if (!stopCurrent) {
+                startReplication(request, host, port);
+            }
+        } else {
+            slave.stop();
 
-      if (!stopCurrent) {
-        startReplication(request, host, port);
-      }
+            if (!stopCurrent) {
+                startReplication(request, host, port);
+            }
+        }
+
+        return responseOk();
     }
 
-    return responseOk();
-  }
+    /**
+     * 开始主从复制
+     * @param request   数据库请求
+     * @param host      主机 IP
+     * @param port      主机端口号
+     */
+    private void startReplication(Request request, String host, String port) {
+        slave = new SlaveReplication(
+                getClauDB(request.getServerContext()), request.getSession(), host, Integer.parseInt(port));
 
-  private void startReplication(Request request, String host, String port) {
-    slave = new SlaveReplication(
-        getClauDB(request.getServerContext()), request.getSession(), host, Integer.parseInt(port));
-
-    slave.start();
-  }
+        slave.start();
+    }
 }

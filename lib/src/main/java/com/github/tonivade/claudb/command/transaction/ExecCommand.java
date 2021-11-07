@@ -4,9 +4,6 @@
  */
 package com.github.tonivade.claudb.command.transaction;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.github.tonivade.claudb.DBServerContext;
 import com.github.tonivade.claudb.TransactionState;
 import com.github.tonivade.claudb.command.DBCommand;
@@ -19,31 +16,57 @@ import com.github.tonivade.resp.command.RespCommand;
 import com.github.tonivade.resp.command.Session;
 import com.github.tonivade.resp.protocol.RedisToken;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis 事务的 exec 命令实现。
+ */
 @Command("exec")
 @TxIgnore
 public class ExecCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    Option<TransactionState> transaction = getTransactionIfExists(request.getSession());
-    if (transaction.isPresent()) {
-      DBServerContext server = getClauDB(request.getServerContext());
-      List<RedisToken> responses = new ArrayList<>();
-      for (Request queuedRequest : transaction.get()) {
-        responses.add(executeCommand(server, queuedRequest));
-      }
-      return RedisToken.array(responses);
-    } else {
-      return RedisToken.error("ERR EXEC without MULTI");
+    /**
+     * 命令形式： exec 执行事务中所有在排队等待的指令
+     *
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        Option<TransactionState> transaction = getTransactionIfExists(request.getSession());
+        if (transaction.isPresent()) {
+            DBServerContext server = getClauDB(request.getServerContext());
+            List<RedisToken> responses = new ArrayList<>();
+            for (Request queuedRequest : transaction.get()) {
+                responses.add(executeCommand(server, queuedRequest));
+            }
+            return RedisToken.array(responses);
+        } else {
+            return RedisToken.error("ERR EXEC without MULTI");
+        }
     }
-  }
 
-  private RedisToken executeCommand(DBServerContext server, Request queuedRequest) {
-    RespCommand command = server.getCommand(queuedRequest.getCommand());
-    return command.execute(queuedRequest);
-  }
+    /**
+     * 执行命令
+     * @param server
+     * @param queuedRequest
+     * @return
+     */
+    private RedisToken executeCommand(DBServerContext server, Request queuedRequest) {
+        RespCommand command = server.getCommand(queuedRequest.getCommand());
+        return command.execute(queuedRequest);
+    }
 
-  private Option<TransactionState> getTransactionIfExists(Session session) {
-    return session.removeValue("tx");
-  }
+    /**
+     * 获取事务
+     * @param session
+     * @return
+     */
+    private Option<TransactionState> getTransactionIfExists(Session session) {
+        return session.removeValue("tx");
+    }
 }

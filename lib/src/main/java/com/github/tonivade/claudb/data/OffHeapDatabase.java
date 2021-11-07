@@ -22,83 +22,88 @@ import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * 堆外数据库
+ */
 public class OffHeapDatabase implements Database {
 
-  private final OHCache<DatabaseKey, DatabaseValue> cache;
+    private final OHCache<DatabaseKey, DatabaseValue> cache;
 
-  public OffHeapDatabase(OHCache<DatabaseKey, DatabaseValue> cache) {
-    this.cache = requireNonNull(cache);
-  }
+    public OffHeapDatabase(OHCache<DatabaseKey, DatabaseValue> cache) {
+        this.cache = requireNonNull(cache);
+    }
 
-  @Override
-  public int size() {
-    return (int) cache.size();
-  }
+    @Override
+    public int size() {
+        return (int) cache.size();
+    }
 
-  @Override
-  public boolean isEmpty() {
-    return cache.size() == 0;
-  }
+    @Override
+    public boolean isEmpty() {
+        return cache.size() == 0;
+    }
 
-  @Override
-  public boolean containsKey(DatabaseKey key) {
-    return cache.containsKey(key);
-  }
+    @Override
+    public boolean containsKey(DatabaseKey key) {
+        return cache.containsKey(key);
+    }
 
-  @Override
-  public DatabaseValue get(DatabaseKey key) {
-    DatabaseValue value = cache.get(key);
-    if (value != null) {
-      if (!value.isExpired(Instant.now())) {
+    @Override
+    public DatabaseValue get(DatabaseKey key) {
+        DatabaseValue value = cache.get(key);
+        if (value != null) {
+            if (!value.isExpired(Instant.now())) {
+                return value;
+            }
+            cache.remove(key);
+        }
+        return null;
+    }
+
+    @Override
+    public DatabaseValue put(DatabaseKey key, DatabaseValue value) {
+        cache.put(key, value);
         return value;
-      }
-      cache.remove(key);
     }
-    return null;
-  }
 
-  @Override
-  public DatabaseValue put(DatabaseKey key, DatabaseValue value) {
-    cache.put(key, value);
-    return value;
-  }
-
-  @Override
-  public DatabaseValue remove(DatabaseKey key) {
-    DatabaseValue value = get(key);
-    cache.remove(key);
-    return value;
-  }
-
-  @Override
-  public void clear() {
-    cache.clear();
-  }
-
-  @Override
-  public ImmutableSet<DatabaseKey> keySet() {
-    Set<DatabaseKey> keys = new HashSet<>();
-    try (CloseableIterator<DatabaseKey> iterator = cache.keyIterator()) {
-      while (iterator.hasNext()) {
-        keys.add(iterator.next());
-      }
-    } catch(IOException e) {
-      throw new UncheckedIOException(e);
+    @Override
+    public DatabaseValue remove(DatabaseKey key) {
+        DatabaseValue value = get(key);
+        cache.remove(key);
+        return value;
     }
-    return ImmutableSet.from(keys);
-  }
 
-  @Override
-  public Sequence<DatabaseValue> values() {
-    List<DatabaseValue> values = new LinkedList<>();
-    for (DatabaseKey key : keySet()) {
-      values.add(cache.get(key));
+    @Override
+    public void clear() {
+        cache.clear();
     }
-    return ImmutableList.from(values);
-  }
 
-  @Override
-  public ImmutableSet<Tuple2<DatabaseKey, DatabaseValue>> entrySet() {
-    return keySet().map(key -> Tuple.of(key, get(key)));
-  }
+    @Override
+    public ImmutableSet<DatabaseKey> keySet() {
+        Set<DatabaseKey> keys = new HashSet<>();
+        try (CloseableIterator<DatabaseKey> iterator = cache.keyIterator()) {
+            while (iterator.hasNext()) {
+                keys.add(iterator.next());
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return ImmutableSet.from(keys);
+    }
+
+    @Override
+    public Sequence<DatabaseValue> values() {
+        List<DatabaseValue> values = new LinkedList<>();
+        for (DatabaseKey key : keySet()) {
+            values.add(cache.get(key));
+        }
+        return ImmutableList.from(values);
+    }
+
+    @Override
+    public ImmutableSet<Tuple2<DatabaseKey, DatabaseValue>> entrySet() {
+        return keySet().map(key -> Tuple.of(key, get(key)));
+    }
 }

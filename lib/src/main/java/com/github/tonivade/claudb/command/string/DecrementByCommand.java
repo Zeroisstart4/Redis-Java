@@ -19,7 +19,11 @@ import static com.github.tonivade.claudb.data.DatabaseValue.string;
 import static com.github.tonivade.resp.protocol.RedisToken.error;
 import static com.github.tonivade.resp.protocol.RedisToken.integer;
 
-// redis String 类型的 decrby 命令实现。
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis String 类型的 decrby 命令实现。
+ */
 @Command("decrby")
 @ParamLength(2)
 @ParamType(DataType.STRING)
@@ -27,9 +31,10 @@ public class DecrementByCommand implements DBCommand {
 
 
     /**
-     *     命令形式： decrby key increment 设置数值数据减少指定范围的值
-     * @param db        当前数据库
-     * @param request   String 类型请求
+     * 命令形式： decrby key increment 设置数值数据减少指定范围的值
+     *
+     * @param db      当前数据库
+     * @param request String 类型请求
      * @return
      */
     @Override

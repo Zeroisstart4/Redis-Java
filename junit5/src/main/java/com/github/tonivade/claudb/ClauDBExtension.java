@@ -4,49 +4,80 @@
  */
 package com.github.tonivade.claudb;
 
+import com.github.tonivade.resp.RespServer;
+import org.junit.jupiter.api.extension.*;
+
 import java.util.function.IntSupplier;
 
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
 
-import com.github.tonivade.resp.RespServer;
-
+/**
+ * @author zhou
+ * <p>
+ * Redis 数据库扩展
+ */
 public class ClauDBExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
-  
-  private final RespServer server;
-  
-  public ClauDBExtension() {
-    this.server = ClauDB.builder().randomPort().build();
-  }
 
-  @Override
-  public void beforeAll(ExtensionContext context) throws Exception {
-    server.start();
-  }
-  
-  @Override
-  public void afterAll(ExtensionContext context) throws Exception {
-    server.stop();
-  }
-  
-  @Override
-  public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-      throws ParameterResolutionException {
-    return serverPort();
-  }
+    /**
+     * 响应服务
+     */
+    private final RespServer server;
 
-  @Override
-  public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-      throws ParameterResolutionException {
-    Class<?> type = parameterContext.getParameter().getType();
-    return IntSupplier.class.equals(type);
-  }
+    public ClauDBExtension() {
+        this.server = ClauDB.builder().randomPort().build();
+    }
 
-  private IntSupplier serverPort() {
-    return server::getPort;
-  }
+    /**
+     * 前置任务
+     *
+     * @param context
+     * @throws Exception
+     */
+    @Override
+    public void beforeAll(ExtensionContext context) throws Exception {
+        server.start();
+    }
+
+    /**
+     * 后置任务
+     *
+     * @param context
+     * @throws Exception
+     */
+    @Override
+    public void afterAll(ExtensionContext context) throws Exception {
+        server.stop();
+    }
+
+    /**
+     * 参数解析
+     *
+     * @param parameterContext
+     * @param extensionContext
+     * @return
+     * @throws ParameterResolutionException
+     */
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+            throws ParameterResolutionException {
+        return serverPort();
+    }
+
+    /**
+     * 支持的参数校验
+     *
+     * @param parameterContext
+     * @param extensionContext
+     * @return
+     * @throws ParameterResolutionException
+     */
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+            throws ParameterResolutionException {
+        Class<?> type = parameterContext.getParameter().getType();
+        return IntSupplier.class.equals(type);
+    }
+
+    private IntSupplier serverPort() {
+        return server::getPort;
+    }
 }

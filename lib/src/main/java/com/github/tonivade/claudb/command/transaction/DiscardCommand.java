@@ -14,20 +14,32 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.command.Session;
 import com.github.tonivade.resp.protocol.RedisToken;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis 事务的 discard 命令实现。
+ */
 @Command("discard")
 @TxIgnore
 public class DiscardCommand implements DBCommand {
 
-  private static final String TX_KEY = "tx";
+    private static final String TX_KEY = "tx";
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    removeTransactionIfExists(request.getSession());
+    /**
+     * 命令形式： discard 刷新一个事务中所有在排队等待的指令，中止事务
+     *
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        removeTransactionIfExists(request.getSession());
 
-    return RedisToken.responseOk();
-  }
+        return RedisToken.responseOk();
+    }
 
-  private Option<TransactionState> removeTransactionIfExists(Session session) {
-    return session.removeValue(TX_KEY);
-  }
+    private Option<TransactionState> removeTransactionIfExists(Session session) {
+        return session.removeValue(TX_KEY);
+    }
 }

@@ -16,18 +16,29 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis Set 类型的 sinter 命令实现。
+ */
 @ReadOnly
 @Command("sinter")
 @ParamLength(2)
 @ParamType(DataType.SET)
 public class SetIntersectionCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableSet<SafeString> result = db.getSet(request.getParam(0));
-    for (SafeString param : request.getParams().asList().tail()) {
-      result = result.intersection(db.getSet(param));
+    /**
+     * 命令形式： sinter key [key ...] 返回指定所有的集合的成员的交集.
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        ImmutableSet<SafeString> result = db.getSet(request.getParam(0));
+        for (SafeString param : request.getParams().asList().tail()) {
+            result = result.intersection(db.getSet(param));
+        }
+        return convert(result);
     }
-    return convert(result);
-  }
 }

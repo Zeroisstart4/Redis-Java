@@ -30,6 +30,11 @@ import com.github.tonivade.resp.command.ServerContext;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis 数据库相关命令的 info 命令实现。
+ */
 @ReadOnly
 @Command("info")
 public class InfoCommand implements DBCommand {

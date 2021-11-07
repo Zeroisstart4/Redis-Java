@@ -4,8 +4,6 @@
  */
 package com.github.tonivade.claudb.command.set;
 
-import static com.github.tonivade.resp.protocol.RedisToken.integer;
-
 import com.github.tonivade.claudb.command.DBCommand;
 import com.github.tonivade.claudb.command.annotation.ParamType;
 import com.github.tonivade.claudb.command.annotation.ReadOnly;
@@ -18,15 +16,28 @@ import com.github.tonivade.resp.command.Request;
 import com.github.tonivade.resp.protocol.RedisToken;
 import com.github.tonivade.resp.protocol.SafeString;
 
+import static com.github.tonivade.resp.protocol.RedisToken.integer;
+
+/**
+ * @author zhou <br/>
+ * <p>
+ * redis Set 类型的 scard 命令实现。
+ */
 @ReadOnly
 @Command("scard")
 @ParamLength(1)
 @ParamType(DataType.SET)
 public class SetCardinalityCommand implements DBCommand {
 
-  @Override
-  public RedisToken execute(Database db, Request request) {
-    ImmutableSet<SafeString> set = db.getSet(request.getParam(0));
-    return integer(set.size());
-  }
+    /**
+     * 命令形式：scard key 返回集合存储的key的基数 (集合元素的数量).
+     * @param db      当前数据库
+     * @param request 命令请求
+     * @return
+     */
+    @Override
+    public RedisToken execute(Database db, Request request) {
+        ImmutableSet<SafeString> set = db.getSet(request.getParam(0));
+        return integer(set.size());
+    }
 }
